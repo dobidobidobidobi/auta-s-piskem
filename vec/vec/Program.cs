@@ -8,6 +8,7 @@ namespace ConsoleApp9
 {
     class Car
     {
+        
         int jmeno { get; }
         int nosnost { get; }
         int nalozdoba { get; }
@@ -18,7 +19,7 @@ namespace ConsoleApp9
     class Udalost
     {
         Car auto;
-        enum TypUdalosti { };
+        enum TypUdalosti {PrijezdDom, PrijezdKon, NalozZacat, Vylozzacat, Nalozeno, Vylozeno };
         TypUdalosti udalost { get; }
     }
 
@@ -26,7 +27,7 @@ namespace ConsoleApp9
     {
         static void Main(string[] args)
         {
-
+            
         }
     }
 }
