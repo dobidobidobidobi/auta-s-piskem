@@ -27,7 +27,7 @@ namespace ConsoleApp9
     {
         static void Main(string[] args)
         {
-            
+            PriorityQueue<Udalost,int> kalendar = new PriorityQueue<Udalost,int>();
         }
     }
 }
