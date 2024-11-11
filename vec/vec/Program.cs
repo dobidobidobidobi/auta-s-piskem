@@ -14,13 +14,16 @@ namespace ConsoleApp9
         int nalozdoba { get; }
         int cesta { get; }
         int vylozdoba { get; }
+
     }
 
     class Udalost
     {
         Car auto;
-        enum TypUdalosti {PrijezdDom, PrijezdKon, NalozZacat, Vylozzacat, Nalozeno, Vylozeno };
+        enum TypUdalosti {PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno };
         TypUdalosti udalost { get; }
+        
+
     }
 
     class Program
