@@ -14,19 +14,16 @@
             int pocet_aut = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze");
 
-
+            //input aut do listu
             for (int jmeno_auta = 1; jmeno_auta <= pocet_aut; jmeno_auta++)
             {
                 int[] auto = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
                 Car auticko = new Car( jmeno_auta, auto[0], auto[1],  auto[2], auto[3]);
                 auta.Add(auticko);
             }
-            foreach (Car aut in auta)
-            {
-                Console.WriteLine(aut.jmeno);
-            }
-
-            while (kalendar.Count > 0 || pisek>0);
+            
+            
+            while (kalendar.Count > 0);
         }
     }
     class Car
@@ -47,18 +44,48 @@
         }
 
     }
+    //je jako samostatna classa => myslím, že musí být mimo Udalost
+    public enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno }
 
     class Udalost
     {
         public Car auto { get; }
-        enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno }
-        TypUdalosti udalost { get; }
+        public TypUdalosti typ { get; }
 
-        public Udalost(Car auticko, int Typ_udalosti)
-        {
+        public Udalost(Car auticko, TypUdalosti typUdalosti)
+        { 
             auto = auticko;
-            udalost = Typ_Udalosti;
+            typ = typUdalosti;   
         }
+        //prvni je dana udalost pote cas, ktery se bude pricitat a nakonec kolik písku tato akce odebrala(vetsinou 0)
+        public Tuple<Udalost, int, int> Proved()
+        {
+            switch(typ)
+            {
+                case TypUdalosti.PrijezdDoM:
+                    return null;
+                case TypUdalosti.PrijezdDoN:
+                    return null;
+                case TypUdalosti.NalozZacat:
+                    if (Naloz.cas==0)
+                    {
+                        Naloz.cas = auto.nalozdoba;
+                        return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.Nalozeno), auto.nalozdoba, auto.nosnost);
+                    }
+                    else
+                    {
+                       return new Tuple<Udalost, int, int>(new Udalost(auto, typ), Naloz.cas, 0); 
+                    }
+                case TypUdalosti.VylozZacat:
+                    return null;
+                case TypUdalosti.Nalozeno:
+                    return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.PrijezdDoM), auto.cesta, 0);
+                case TypUdalosti.Vylozeno:
+                    return null;
+            }
+        }
+            
+
         
 
 
