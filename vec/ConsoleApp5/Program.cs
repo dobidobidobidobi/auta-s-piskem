@@ -25,6 +25,8 @@
             {
                 Console.WriteLine(aut.jmeno);
             }
+
+            while (kalendar.Count > 0 || pisek>0);
         }
     }
     class Car
@@ -48,13 +50,20 @@
 
     class Udalost
     {
-        Car auto;
-        enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno };
+        public Car auto { get; }
+        enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno }
         TypUdalosti udalost { get; }
+
+        public Udalost(Car auticko, int Typ_udalosti)
+        {
+            auto = auticko;
+            udalost = Typ_Udalosti;
+        }
+        
 
 
     }
-
+    //globalni variable -_-
     static class Naloz
     {
         public static int cas;
