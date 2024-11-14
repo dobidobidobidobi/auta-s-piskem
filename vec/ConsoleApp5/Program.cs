@@ -63,9 +63,9 @@
             switch(typ)
             {
                 case TypUdalosti.PrijezdDoM:
-                    return null;
+                    return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.VylozZacat), 0 , 0);
                 case TypUdalosti.PrijezdDoN:
-                    return null;
+                    return 
                 case TypUdalosti.NalozZacat:
                     if (Naloz.cas==0)
                     {
@@ -77,10 +77,12 @@
                        return new Tuple<Udalost, int, int>(new Udalost(auto, typ), Naloz.cas, 0); 
                     }
                 case TypUdalosti.VylozZacat:
-                    return null;
+                    return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.Vylozeno), auto.vylozdoba, 0);
                 case TypUdalosti.Nalozeno:
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.PrijezdDoM), auto.cesta, 0);
                 case TypUdalosti.Vylozeno:
+                    return null;
+                default:
                     return null;
             }
         }
