@@ -15,7 +15,7 @@
             int pocet_aut = Int32.Parse(Console.ReadLine());
 
             //input aut do listu
-            Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze")
+            Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze");
             for (int jmeno_auta = 1; jmeno_auta <= pocet_aut; jmeno_auta++)
             {
                 int[] auto = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
@@ -69,6 +69,7 @@
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.VylozZacat), 0 , 0);
 
                 case TypUdalosti.PrijezdDoN:
+                    Console.WriteLine("v case" + Stav.cas + " auto " + auto.jmeno + " prijelo do N");
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.NalozZacat), 0, 0);
                 
                 case TypUdalosti.NalozZacat:
@@ -84,21 +85,24 @@
                     }
                 
                 case TypUdalosti.VylozZacat:
+                    Console.WriteLine("v case" + Stav.cas + " auto " + auto.jmeno + " zacalo vykladat");
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.Vylozeno), auto.vylozdoba, 0);
 
                 case TypUdalosti.Nalozeno:
+                    Naloz.cas = 0;
                     if (auto.nosnost>=Stav.zbyvajici_pisek)
                     {
                         Stav.zbyvajici_pisek -= auto.nosnost;
-                        Console.WriteLine("auto " + auto.jmeno + " nalozilo " + auto.nosnost + " tun pisku, zbyva " + Stav.zbyvajici_pisek + " tun pisku");
+                        Console.WriteLine("v case" + Stav.cas + " auto " + auto.jmeno + " nalozilo " + auto.nosnost + " tun pisku, zbyva " + Stav.zbyvajici_pisek + " tun pisku");
                     }
                     else
                     {
-                        Console.WriteLine("auto " + auto.jmeno + " nalozilo " + Stav.zbyvajici_pisek + " tun pisku, zbyva 0 tun pisku");
+                        Console.WriteLine("v case" + Stav.cas + "auto " + auto.jmeno + " nalozilo " + Stav.zbyvajici_pisek + " tun pisku, zbyva 0 tun pisku");
                         Stav.zbyvajici_pisek = 0;
                     }
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.PrijezdDoM), auto.cesta, 0);
                 case TypUdalosti.Vylozeno:
+                    Console.WriteLine("v case" + Stav.cas + " auto " + auto.jmeno + " vylozilo");
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.PrijezdDoN), auto.cesta, 0);
                 default:
                     return null;
