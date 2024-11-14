@@ -1,4 +1,6 @@
-﻿namespace ConsoleApp5
+﻿using System.Collections;
+
+namespace ConsoleApp5
 {
     internal class Program
     {
@@ -6,7 +8,9 @@
         {
             Naloz.cas = 0;
             PriorityQueue<Udalost, int> kalendar = new PriorityQueue<Udalost, int>();
-            List<Car> auta = new List<Car>();
+            // auta jsou potreba jenom jednou a poté budou v kalendari
+            //kvuli tomu fronta --> lepsi casova slozitost nez list
+            Queue<Car> auta = new Queue<Car>();
 
             //input zakladnich dat
             Console.WriteLine("Napište kolik tun písku mají auta převézt");
@@ -20,11 +24,18 @@
             {
                 int[] auto = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
                 Car auticko = new Car( jmeno_auta, auto[0], auto[1],  auto[2], auto[3]);
-                auta.Add(auticko);
+                auta.Enqueue(auticko);
             }
 
-
-            while (kalendar.Count > 0);
+            kalendar.Enqueue(new Udalost(auta.Dequeue(), TypUdalosti.NalozZacat), 0);
+           
+            while (kalendar.Count > 0)
+            {
+                if (Naloz.cas==0 && auta.Count > 0 && Stav.zbyvajici_pisek > 0)
+                {
+                    kalendar.Enqueue(new Udalost(auta.Dequeue(), TypUdalosti.NalozZacat), 0);
+                }
+            }
         }
     }
     class Car
