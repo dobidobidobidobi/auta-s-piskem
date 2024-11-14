@@ -58,7 +58,7 @@
             auto = auticko;
             typ = typUdalosti;   
         }
-        //vraci prvni pristi udalost dale cas, ktery se bude pricitat a nakonec kolik písku tato akce odebrala(vetsinou 0)
+        //vraci navazujici udalost dale cas, ktery se bude pricitat a nakonec kolik písku tato akce odebrala(vetsinou 0)
         // ty dva int by se pro lepsi prehlednost dali predelat na jednotlivou classu --> treba class zmena
         public Tuple<Udalost, int, int> Proved()
         {
