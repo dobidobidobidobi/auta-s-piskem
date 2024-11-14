@@ -8,21 +8,22 @@
             PriorityQueue<Udalost, int> kalendar = new PriorityQueue<Udalost, int>();
             List<Car> auta = new List<Car>();
 
+            //input zakladnich dat
             Console.WriteLine("Napište kolik tun písku mají auta převézt");
-            int pisek = Int32.Parse(Console.ReadLine());
+            Stav.zbyvajici_pisek = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Napište počet aut");
             int pocet_aut = Int32.Parse(Console.ReadLine());
-            Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze");
 
             //input aut do listu
+            Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze")
             for (int jmeno_auta = 1; jmeno_auta <= pocet_aut; jmeno_auta++)
             {
                 int[] auto = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
                 Car auticko = new Car( jmeno_auta, auto[0], auto[1],  auto[2], auto[3]);
                 auta.Add(auticko);
             }
-            
-            
+
+
             while (kalendar.Count > 0);
         }
     }
@@ -57,18 +58,23 @@
             auto = auticko;
             typ = typUdalosti;   
         }
-        //prvni je dana udalost pote cas, ktery se bude pricitat a nakonec kolik písku tato akce odebrala(vetsinou 0)
+        //vraci prvni pristi udalost dale cas, ktery se bude pricitat a nakonec kolik písku tato akce odebrala(vetsinou 0)
+        // ty dva int by se pro lepsi prehlednost dali predelat na jednotlivou classu --> treba class zmena
         public Tuple<Udalost, int, int> Proved()
         {
             switch(typ)
             {
                 case TypUdalosti.PrijezdDoM:
+                    Console.WriteLine("v case" + Stav.cas + " auto " + auto.jmeno + " prijelo do M");
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.VylozZacat), 0 , 0);
+
                 case TypUdalosti.PrijezdDoN:
-                    return 
+                    return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.NalozZacat), 0, 0);
+                
                 case TypUdalosti.NalozZacat:
                     if (Naloz.cas==0)
                     {
+                        Console.WriteLine("v case" +Stav.cas + " auto " + auto.jmeno + " zacalo nakladat");
                         Naloz.cas = auto.nalozdoba;
                         return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.Nalozeno), auto.nalozdoba, auto.nosnost);
                     }
@@ -76,12 +82,24 @@
                     {
                        return new Tuple<Udalost, int, int>(new Udalost(auto, typ), Naloz.cas, 0); 
                     }
+                
                 case TypUdalosti.VylozZacat:
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.Vylozeno), auto.vylozdoba, 0);
+
                 case TypUdalosti.Nalozeno:
+                    if (auto.nosnost>=Stav.zbyvajici_pisek)
+                    {
+                        Stav.zbyvajici_pisek -= auto.nosnost;
+                        Console.WriteLine("auto " + auto.jmeno + " nalozilo " + auto.nosnost + " tun pisku, zbyva " + Stav.zbyvajici_pisek + " tun pisku");
+                    }
+                    else
+                    {
+                        Console.WriteLine("auto " + auto.jmeno + " nalozilo " + Stav.zbyvajici_pisek + " tun pisku, zbyva 0 tun pisku");
+                        Stav.zbyvajici_pisek = 0;
+                    }
                     return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.PrijezdDoM), auto.cesta, 0);
                 case TypUdalosti.Vylozeno:
-                    return null;
+                    return new Tuple<Udalost, int, int>(new Udalost(auto, TypUdalosti.PrijezdDoN), auto.cesta, 0);
                 default:
                     return null;
             }
@@ -91,6 +109,12 @@
         
 
 
+    }
+    //bude vyjadrovat jaky je cas pri dane udalosti a kolik písku zbyvá převézt
+    static class Stav
+    {
+        public static int cas = 0;
+        public static int zbyvajici_pisek;
     }
     //globalni variable -_-
     static class Naloz
