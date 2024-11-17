@@ -34,7 +34,7 @@ namespace ConsoleApp5
                 //to jak je smycka serazena take znamena, ze simulace pri nakladani uprednostnuje auta, ktera jeste nic nedelala
                 //da se to pripadne zmenit
                 //bool probehla prvni udalost je kvuli spatne implemetaci Udalost.konec_naloze, jinak by to na zacatku nacetlo vsechna auta 
-                Console.WriteLine(Udalost.probihaNaloz);
+           
               
                 if (Stav.zbyvajici_pisek == 0 && kalendar.Peek().typ == TypUdalosti.NalozZacat)
                 {
@@ -49,8 +49,11 @@ namespace ConsoleApp5
                     Udalost NasledujiciUdalost = kalendar.Dequeue().Proved();
                     if (NasledujiciUdalost != null)
                     {
-
+                        kalendar.Enqueue(NasledujiciUdalost, NasledujiciUdalost.cas);
                     }
+   
+                       
+               
                 }
             }
         }
