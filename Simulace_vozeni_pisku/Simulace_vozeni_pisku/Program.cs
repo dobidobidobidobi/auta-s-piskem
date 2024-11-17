@@ -1,49 +1,45 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace ConsoleApp5
+namespace Simulace_vozeni_pisku
 {
-    internal class Program
+    class Program
     {
         static void Main(string[] args)
-        {
-            Udalost.probihaNaloz = false;
-            PriorityQueue<Udalost, int> kalendar = new PriorityQueue<Udalost, int>();
-     
+        {    
             //input zakladnich dat
             Console.WriteLine("Napište kolik tun písku mají auta převézt");
             Stav.zbyvajici_pisek = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Napište počet aut");
             int pocet_aut = Int32.Parse(Console.ReadLine());
 
-            //input aut do Queue
+            //input a seřazení aut
             Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze");
             for (int jmeno_auta = 1; jmeno_auta <= pocet_aut; jmeno_auta++)
             {
                 int[] auto = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
                 Car auticko = new Car( jmeno_auta, auto[0], auto[1],  auto[2], auto[3]);
-                Udalost.autaCekajiciNaNaloz.Enqueue(auticko);
+                Serad_auto(auticko);
             }
 
-            Udalost prvniUdalost = new Udalost(Udalost.autaCekajiciNaNaloz.Dequeue(), TypUdalosti.NalozZacat, 0).Proved();
+            PriorityQueue<Udalost, int> kalendar = new PriorityQueue<Udalost, int>();
+            Udalost prvniUdalost = new Udalost(Udalost.autaCekajiciNaNaloz[0], TypUdalosti.NalozZacat, 0).Proved();
+            Udalost.autaCekajiciNaNaloz.RemoveAt(0);
             kalendar.Enqueue(prvniUdalost, prvniUdalost.cas);
            
             while (kalendar.Count > 0)
             {
                 //pokud zadne auto nic nenakladá a existuje nevyuzite auto, zacne nakladat
-                //to jak je smycka serazena take znamena, ze simulace pri nakladani uprednostnuje auta, ktera jeste nic nedelala
-                //da se to pripadne zmenit
-                //bool probehla prvni udalost je kvuli spatne implemetaci Udalost.konec_naloze, jinak by to na zacatku nacetlo vsechna auta 
-           
-              
+                         
                 if (Stav.zbyvajici_pisek == 0 && kalendar.Peek().typ == TypUdalosti.NalozZacat)
                 {
                     kalendar.Dequeue();
                 }
-                else if (Udalost.probihaNaloz == false && Stav.zbyvajici_pisek > 0 && Udalost.autaCekajiciNaNaloz.Count != 0)
-                {
-                    kalendar.Enqueue(new Udalost(Udalost.autaCekajiciNaNaloz.Dequeue(), TypUdalosti.NalozZacat, Stav.cas), Stav.cas);
-                }
+                //else if (Udalost.probihaNaloz == false && Udalost.autaCekajiciNaNaloz.Count != 0)
+                //{
+                //    kalendar.Enqueue(new Udalost(Udalost.autaCekajiciNaNaloz[0], TypUdalosti.NalozZacat, Stav.cas), Stav.cas);
+                //    Udalost.autaCekajiciNaNaloz.RemoveAt(0);
+                //}
                 else
                 {
                     Udalost NasledujiciUdalost = kalendar.Dequeue().Proved();
@@ -51,10 +47,50 @@ namespace ConsoleApp5
                     {
                         kalendar.Enqueue(NasledujiciUdalost, NasledujiciUdalost.cas);
                     }
-   
-                       
-               
                 }
+                if (Udalost.probihaNaloz == false && Udalost.autaCekajiciNaNaloz.Count != 0)
+                {
+                    kalendar.Enqueue(new Udalost(Udalost.autaCekajiciNaNaloz[0], TypUdalosti.NalozZacat, Stav.cas), Stav.cas);
+                    Udalost.autaCekajiciNaNaloz.RemoveAt(0);
+                }
+            }
+        }
+        // Pro zajištění správné posloupnosti dle zadání
+        public static void Serad_auto(Car auticko)
+        {
+            if (Udalost.autaCekajiciNaNaloz.Any())
+            {
+                int i = 0;
+                while (Udalost.autaCekajiciNaNaloz[i].nosnost > auticko.nosnost && i < Udalost.autaCekajiciNaNaloz.Count)
+                {
+                    i++;
+                }
+                while (Udalost.autaCekajiciNaNaloz[i].nosnost == auticko.nosnost && Udalost.autaCekajiciNaNaloz[i].cesta < auticko.cesta && i < Udalost.autaCekajiciNaNaloz.Count)
+                {
+                    i++;
+                }
+                while (Udalost.autaCekajiciNaNaloz[i].nosnost == auticko.nosnost && Udalost.autaCekajiciNaNaloz[i].cesta == auticko.cesta && Udalost.autaCekajiciNaNaloz[i].nalozdoba < auticko.nalozdoba && i < Udalost.autaCekajiciNaNaloz.Count)
+                {
+                    i++;
+                }
+                while (Udalost.autaCekajiciNaNaloz[i].nosnost == auticko.nosnost && Udalost.autaCekajiciNaNaloz[i].cesta == auticko.cesta && Udalost.autaCekajiciNaNaloz[i].nalozdoba == auticko.nalozdoba && Udalost.autaCekajiciNaNaloz[i].nalozdoba < auticko.nalozdoba && i < Udalost.autaCekajiciNaNaloz.Count)
+                {
+                    i++;
+                }
+
+                if (i == Udalost.autaCekajiciNaNaloz.Count)
+                {
+                    Udalost.autaCekajiciNaNaloz.Add(auticko);
+                }
+
+                else
+                {
+                    Udalost.autaCekajiciNaNaloz.Insert(i,auticko);
+                }
+            }
+            else
+            {
+                Udalost.autaCekajiciNaNaloz.Add(auticko);
             }
         }
     }
@@ -76,7 +112,7 @@ namespace ConsoleApp5
         }
 
     }
-    public enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno }
+    public enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, /*VylozZacat,*/ Nalozeno, Vylozeno }
 
     class Udalost
     {
@@ -84,10 +120,10 @@ namespace ConsoleApp5
         public Car auto { get; }
         public TypUdalosti typ { get; }
         public int cas { get; }
-        //kdyz je 0 => neprobiha naloz, jinak vyjadruje cas konce probihajici naloze
-        public static bool probihaNaloz;
-
-        public static Queue<Car> autaCekajiciNaNaloz = new Queue<Car>();
+        
+        public static bool probihaNaloz = false;
+        
+        public static List<Car> autaCekajiciNaNaloz = new List<Car>();
 
         public Udalost(Car auticko, TypUdalosti typUdalosti, int c)
         { 
@@ -104,29 +140,24 @@ namespace ConsoleApp5
             switch(typ)
             {
                 case TypUdalosti.PrijezdDoM:
-                    Console.WriteLine("v case "  + Stav.cas + " auto " + auto.jmeno + " prijelo do M");
-                    return new Udalost(auto, TypUdalosti.VylozZacat, Stav.cas);
+                    Console.WriteLine("v case "  + Stav.cas + " auto " + auto.jmeno + " prijelo do M" + " a zacalo vykladat");
+                    return new Udalost(auto, TypUdalosti.Vylozeno, auto.vylozdoba+Stav.cas);
 
                 case TypUdalosti.PrijezdDoN:
                     Console.WriteLine("v case " + Stav.cas + " auto " + auto.jmeno + " prijelo do N");
-                    return new Udalost(auto, TypUdalosti.NalozZacat, Stav.cas);
+                    Program.Serad_auto(auto);
+                    return null;
                 
                 case TypUdalosti.NalozZacat:
-                    if (Udalost.probihaNaloz==false)
-                    {
-                        Console.WriteLine("v case " +Stav.cas + " auto " + auto.jmeno + " zacalo nakladat");
-                        Udalost.probihaNaloz = true;
-                        return new Udalost(auto, TypUdalosti.Nalozeno, auto.nalozdoba + Stav.cas);
-                    }
-                    else
-                    {
-                        autaCekajiciNaNaloz.Enqueue(auto);
-                        return null; 
-                    }
+
+                    Console.WriteLine("v case " + Stav.cas + " auto " + auto.jmeno + " zacalo nakladat");
+                    Udalost.probihaNaloz = true;
+                    return new Udalost(auto, TypUdalosti.Nalozeno, auto.nalozdoba + Stav.cas);
+                    
                 
-                case TypUdalosti.VylozZacat:
-                    Console.WriteLine("v case "  + Stav.cas + " auto " + auto.jmeno + " zacalo vykladat");
-                    return new Udalost(auto, TypUdalosti.Vylozeno, auto.vylozdoba+Stav.cas);
+                //case TypUdalosti.VylozZacat:
+                //    Console.WriteLine("v case "  + Stav.cas + " auto " + auto.jmeno + " zacalo vykladat");
+                //    return new Udalost(auto, TypUdalosti.Vylozeno, auto.vylozdoba+Stav.cas);
 
                 case TypUdalosti.Nalozeno:
                     Udalost.probihaNaloz = false;
