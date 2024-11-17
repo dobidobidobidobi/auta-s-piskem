@@ -6,9 +6,9 @@ namespace ConsoleApp5
     {
         static void Main(string[] args)
         {
-            Naloz.cas = 0;
+            Udalost.konec_naloze = 0;
             PriorityQueue<Udalost, int> kalendar = new PriorityQueue<Udalost, int>();
-            // auta jsou potreba jenom jednou a poté budou v kalendari
+            // auta jsou potreba jenom jednou a poté budou v kalendari ve smycce udalosti
             //kvuli tomu fronta --> lepsi casova slozitost nez list
             Queue<Car> auta = new Queue<Car>();
 
@@ -32,11 +32,11 @@ namespace ConsoleApp5
            
             while (kalendar.Count > 0)
             {
-                //pokud zadne auto nic nenakladá a existuje nevyuzite auto zacne nakladat
+                //pokud zadne auto nic nenakladá a existuje nevyuzite auto, zacne nakladat
                 //to jak je smycka serazena take znamena, ze simulace pri nakladani uprednostnuje auta, ktera jeste nic nedelala
                 //da se to pripadne zmenit
-                //bool probehla prvni udalost je kvuli spatne implemetaci Naloz.cas, jinak by to na zacatku nacetlo vsechna auta 
-                if (Naloz.cas==0 && auta.Count > 0 && Stav.zbyvajici_pisek > 0 && probehlaPrvniUdalost==true)
+                //bool probehla prvni udalost je kvuli spatne implemetaci Udalost.konec_naloze, jinak by to na zacatku nacetlo vsechna auta 
+                if (Udalost.konec_naloze==0 && auta.Count > 0 && Stav.zbyvajici_pisek > 0 && probehlaPrvniUdalost==true)
                 {
                     kalendar.Enqueue(new Udalost(auta.Dequeue(), TypUdalosti.NalozZacat), Stav.cas);
                 }
@@ -77,7 +77,6 @@ namespace ConsoleApp5
         }
 
     }
-    //je jako samostatna classa => myslím, že musí být mimo Udalost
     public enum TypUdalosti { PrijezdDoM, PrijezdDoN, NalozZacat, VylozZacat, Nalozeno, Vylozeno }
 
     class Udalost
@@ -90,6 +89,8 @@ namespace ConsoleApp5
             auto = auticko;
             typ = typUdalosti;   
         }
+        //kdyz je 0 => neprobiha naloz, jinak vyjadruje cas konce probihajici naloze
+        public static int konec_naloze {  get; set; }
         // tuple s vecmi co pridame do kalendare --> udalost a v jaky cas
         // pro vetsi abstrakci by se dal zmenit na nejakou classu jako treba pristi udalost
         public Tuple<Udalost, int> Proved()
@@ -105,16 +106,16 @@ namespace ConsoleApp5
                     return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.NalozZacat), Stav.cas);
                 
                 case TypUdalosti.NalozZacat:
-                    if (Naloz.cas==0)
+                    if (Udalost.konec_naloze==0)
                     {
                         Console.WriteLine("v case " +Stav.cas + " auto " + auto.jmeno + " zacalo nakladat");
-                        Naloz.cas = auto.nalozdoba + Stav.cas;
+                        Udalost.konec_naloze = auto.nalozdoba + Stav.cas;
                         return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.Nalozeno), auto.nalozdoba + Stav.cas);
                     }
                     else
                     {
-                        //naloz.cas musi byt + 1 jelikoz jinak by se halda mohla zacyklit
-                        return new Tuple<Udalost, int>(new Udalost(auto, typ), Naloz.cas + 1); 
+                        //Udalost.konec_naloze musi byt + 1 jelikoz jinak by se halda mohla zacyklit
+                        return new Tuple<Udalost, int>(new Udalost(auto, typ), Udalost.konec_naloze + 1); 
                     }
                 
                 case TypUdalosti.VylozZacat:
@@ -122,7 +123,7 @@ namespace ConsoleApp5
                     return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.Vylozeno), auto.vylozdoba+Stav.cas);
 
                 case TypUdalosti.Nalozeno:
-                    Naloz.cas = 0;
+                    Udalost.konec_naloze = 0;
                     if (auto.nosnost<Stav.zbyvajici_pisek)
                     {
                         Stav.zbyvajici_pisek -= auto.nosnost;
@@ -155,9 +156,5 @@ namespace ConsoleApp5
         public static int cas = 0;
         public static int zbyvajici_pisek;
     }
-    //globalni variable -_-
-    static class Naloz
-    {
-        public static int cas;
-    }
+
 }
