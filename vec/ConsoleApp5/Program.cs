@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace ConsoleApp5
 {
@@ -6,29 +7,26 @@ namespace ConsoleApp5
     {
         static void Main(string[] args)
         {
-            Udalost.konec_naloze = 0;
+            Udalost.probihaNaloz = false;
             PriorityQueue<Udalost, int> kalendar = new PriorityQueue<Udalost, int>();
-            // auta jsou potreba jenom jednou a poté budou v kalendari ve smycce udalosti
-            //kvuli tomu fronta --> lepsi casova slozitost nez list
-            Queue<Car> auta = new Queue<Car>();
-
+     
             //input zakladnich dat
             Console.WriteLine("Napište kolik tun písku mají auta převézt");
             Stav.zbyvajici_pisek = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Napište počet aut");
             int pocet_aut = Int32.Parse(Console.ReadLine());
 
-            //input aut do listu
+            //input aut do Queue
             Console.WriteLine("Napište vlastnosti jednotlivých aut ve tvaru: Nosnost DobaNaloze DobaCesty DobaVyloze");
             for (int jmeno_auta = 1; jmeno_auta <= pocet_aut; jmeno_auta++)
             {
                 int[] auto = Array.ConvertAll(Console.ReadLine().Split(' '), int.Parse);
                 Car auticko = new Car( jmeno_auta, auto[0], auto[1],  auto[2], auto[3]);
-                auta.Enqueue(auticko);
+                Udalost.autaCekajiciNaNaloz.Enqueue(auticko);
             }
 
-            kalendar.Enqueue(new Udalost(auta.Dequeue(), TypUdalosti.NalozZacat), 0);
-            bool probehlaPrvniUdalost = false;
+            Udalost prvniUdalost = new Udalost(Udalost.autaCekajiciNaNaloz.Dequeue(), TypUdalosti.NalozZacat, 0).Proved();
+            kalendar.Enqueue(prvniUdalost, prvniUdalost.cas);
            
             while (kalendar.Count > 0)
             {
@@ -36,25 +34,23 @@ namespace ConsoleApp5
                 //to jak je smycka serazena take znamena, ze simulace pri nakladani uprednostnuje auta, ktera jeste nic nedelala
                 //da se to pripadne zmenit
                 //bool probehla prvni udalost je kvuli spatne implemetaci Udalost.konec_naloze, jinak by to na zacatku nacetlo vsechna auta 
-                if (Udalost.konec_naloze==0 && auta.Count > 0 && Stav.zbyvajici_pisek > 0 && probehlaPrvniUdalost==true)
+                Console.WriteLine(Udalost.probihaNaloz);
+              
+                if (Stav.zbyvajici_pisek == 0 && kalendar.Peek().typ == TypUdalosti.NalozZacat)
                 {
-                    kalendar.Enqueue(new Udalost(auta.Dequeue(), TypUdalosti.NalozZacat), Stav.cas);
-                }
-                //kdyz neni pisek nezacne dalsi smycka udalosti
-                else if (Stav.zbyvajici_pisek <= 0 && kalendar.Peek().typ == TypUdalosti.NalozZacat)
-                { 
                     kalendar.Dequeue();
+                }
+                else if (Udalost.probihaNaloz == false && Stav.zbyvajici_pisek > 0 && Udalost.autaCekajiciNaNaloz.Count != 0)
+                {
+                    kalendar.Enqueue(new Udalost(Udalost.autaCekajiciNaNaloz.Dequeue(), TypUdalosti.NalozZacat, Stav.cas), Stav.cas);
                 }
                 else
                 {
-                    //Ziska element v halde a podle ceho halda radi, coz je pro nas cas 
-                    kalendar.TryDequeue(out Udalost momentalni_udalost, out int cas);
-                    
-                    Stav.cas = cas;
-                    Tuple<Udalost, int> dalsi_udalost = momentalni_udalost.Proved();
+                    Udalost NasledujiciUdalost = kalendar.Dequeue().Proved();
+                    if (NasledujiciUdalost != null)
+                    {
 
-                    kalendar.Enqueue(dalsi_udalost.Item1, dalsi_udalost.Item2);
-                    probehlaPrvniUdalost = true;
+                    }
                 }
             }
         }
@@ -81,49 +77,56 @@ namespace ConsoleApp5
 
     class Udalost
     {
+
         public Car auto { get; }
         public TypUdalosti typ { get; }
+        public int cas { get; }
+        //kdyz je 0 => neprobiha naloz, jinak vyjadruje cas konce probihajici naloze
+        public static bool probihaNaloz;
 
-        public Udalost(Car auticko, TypUdalosti typUdalosti)
+        public static Queue<Car> autaCekajiciNaNaloz = new Queue<Car>();
+
+        public Udalost(Car auticko, TypUdalosti typUdalosti, int c)
         { 
             auto = auticko;
             typ = typUdalosti;   
+            cas = c;
         }
-        //kdyz je 0 => neprobiha naloz, jinak vyjadruje cas konce probihajici naloze
-        public static int konec_naloze {  get; set; }
         // tuple s vecmi co pridame do kalendare --> udalost a v jaky cas
         // pro vetsi abstrakci by se dal zmenit na nejakou classu jako treba pristi udalost
-        public Tuple<Udalost, int> Proved()
+        public  Udalost Proved()
         {
+            Stav.cas = cas;
+
             switch(typ)
             {
                 case TypUdalosti.PrijezdDoM:
                     Console.WriteLine("v case "  + Stav.cas + " auto " + auto.jmeno + " prijelo do M");
-                    return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.VylozZacat), Stav.cas);
+                    return new Udalost(auto, TypUdalosti.VylozZacat, Stav.cas);
 
                 case TypUdalosti.PrijezdDoN:
                     Console.WriteLine("v case " + Stav.cas + " auto " + auto.jmeno + " prijelo do N");
-                    return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.NalozZacat), Stav.cas);
+                    return new Udalost(auto, TypUdalosti.NalozZacat, Stav.cas);
                 
                 case TypUdalosti.NalozZacat:
-                    if (Udalost.konec_naloze==0)
+                    if (Udalost.probihaNaloz==false)
                     {
                         Console.WriteLine("v case " +Stav.cas + " auto " + auto.jmeno + " zacalo nakladat");
-                        Udalost.konec_naloze = auto.nalozdoba + Stav.cas;
-                        return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.Nalozeno), auto.nalozdoba + Stav.cas);
+                        Udalost.probihaNaloz = true;
+                        return new Udalost(auto, TypUdalosti.Nalozeno, auto.nalozdoba + Stav.cas);
                     }
                     else
                     {
-                        //Udalost.konec_naloze musi byt + 1 jelikoz jinak by se halda mohla zacyklit
-                        return new Tuple<Udalost, int>(new Udalost(auto, typ), Udalost.konec_naloze + 1); 
+                        autaCekajiciNaNaloz.Enqueue(auto);
+                        return null; 
                     }
                 
                 case TypUdalosti.VylozZacat:
                     Console.WriteLine("v case "  + Stav.cas + " auto " + auto.jmeno + " zacalo vykladat");
-                    return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.Vylozeno), auto.vylozdoba+Stav.cas);
+                    return new Udalost(auto, TypUdalosti.Vylozeno, auto.vylozdoba+Stav.cas);
 
                 case TypUdalosti.Nalozeno:
-                    Udalost.konec_naloze = 0;
+                    Udalost.probihaNaloz = false;
                     if (auto.nosnost<Stav.zbyvajici_pisek)
                     {
                         Stav.zbyvajici_pisek -= auto.nosnost;
@@ -134,22 +137,18 @@ namespace ConsoleApp5
                         Console.WriteLine("v case " + Stav.cas + " auto " + auto.jmeno + " nalozilo " + Stav.zbyvajici_pisek + " tun pisku, zbyva 0 tun pisku");
                         Stav.zbyvajici_pisek = 0;
                     }
-                    return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.PrijezdDoM), auto.cesta + Stav.cas);
+                    return new Udalost(auto, TypUdalosti.PrijezdDoM, auto.cesta + Stav.cas);
 
                 case TypUdalosti.Vylozeno:
                     Console.WriteLine("v case " + Stav.cas + " auto " + auto.jmeno + " vylozilo");
-                    return new Tuple<Udalost, int>(new Udalost(auto, TypUdalosti.PrijezdDoN), auto.cesta + Stav.cas);
+                    return new Udalost(auto, TypUdalosti.PrijezdDoN, auto.cesta + Stav.cas);
                 default:
                     Console.WriteLine("Udalost.Proved() nefunguje");
                     return null;
             }
         }
-            
-
-        
-
-
     }
+
     //bude vyjadrovat jaky je cas pri dane udalosti a kolik písku zbyvá převézt
     static class Stav
     {
